@@ -2,22 +2,35 @@ import cv2
 import os
 
 
-class CreacionDataset:
+class ProcesadorRostrosDesdeVideo:
 
     def __init__(self, ruta_video, directorio_dataset):
+        """
+        Inicializa el ProcesadorRostrosDesdeVideo con la ruta del video y el directorio para almacenar las imágenes.
+
+        Parámetros:
+        - ruta_video (str): La ruta del archivo de video.
+        - directorio_dataset (str): El directorio donde se guardarán las imágenes recortadas.
+        - cascada_rostro: Objeto para la detección de rostros mediante cascada.
+        - contador (int): Contador de imágenes procesadas.
+        - ventana_ancho (int): Ancho de la ventana de visualización.
+        - ventana_alto (int): Alto de la ventana de visualización.
+        """
         self.ruta_video = ruta_video
         self.directorio_dataset = directorio_dataset
         self.cascada_rostro = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         self.contador = 0
-        self.contador_fotogramas = 0
         self.ventana_ancho = 1280
         self.ventana_alto = 720
 
     def crear_directorio_dataset(self):
-        if not os.path.exists(self.directorio_dataset):
-            os.makedirs(self.directorio_dataset)
+        # Crea el directorio de destino si no existe.
+        os.makedirs(self.directorio_dataset, exist_ok=True)
 
     def procesar_video(self):
+        """
+        Procesa el video, detecta rostros en cada fotograma y guarda las caras recortadas en el directorio especificado.
+        """
         # Inicializa el objeto para capturar video desde el archivo
         captura = cv2.VideoCapture(self.ruta_video)
 
@@ -32,14 +45,11 @@ class CreacionDataset:
             if not ret:
                 break
 
-            # Incrementa el contador de fotogramas
-            self.contador_fotogramas += 1
-
             # Convierte el fotograma a escala de grises para la detección de rostros
             gris = cv2.cvtColor(fotograma, cv2.COLOR_BGR2GRAY)
 
-            # Detecta rostros en el fotograma cada 10 cuadros
-            if self.contador_fotogramas % 10 == 0:
+            # Detecta rostros en el fotograma según el número de cuadros
+            if self.contador % 1 == 0:
                 # Detecta rostros en el fotograma
                 rostros = self.cascada_rostro.detectMultiScale(gris, scaleFactor=1.3, minNeighbors=5, minSize=(30, 30))
 
@@ -51,39 +61,17 @@ class CreacionDataset:
 
                     # Guarda la cara recortada en la carpeta correspondiente
                     directorio_emocion = os.path.join(self.directorio_dataset)
-                    if not os.path.exists(directorio_emocion):
-                        os.makedirs(directorio_emocion)
+                    os.makedirs(directorio_emocion, exist_ok=True)
 
                     nombre_archivo = os.path.join(directorio_emocion, f"{self.contador}.jpg")
                     cv2.imwrite(nombre_archivo, cara_recortada_gris)
                     self.contador += 1
 
-            # Obtén el tiempo actual del video en segundos
-            tiempo_actual_segundos = captura.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-
-            # Formatea el tiempo en un formato legible, por ejemplo, minutos:segundos
-            tiempo_formateado = f"Tiempo: {int(tiempo_actual_segundos // 60)}:{int(tiempo_actual_segundos % 60)}"
-
-            # Agrega el texto al fotograma actual
-            cv2.putText(fotograma, tiempo_formateado, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-
-            # Muestra el fotograma en la ventana redimensionada
+            # Muestra el video a procesar en la ventana redimensionada
             cv2.imshow('Captura de Rostros', fotograma)
 
-            # Sale del bucle si se presiona la tecla 'q'
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-        # Libera el video y cierra la ventana
         captura.release()
         cv2.destroyAllWindows()
-
-
-# Uso de la clase
-if __name__ == "__main__":
-    ruta_video = ''
-    nombre_carpeta = "faces"
-
-    recognizer = CreacionDataset(ruta_video, nombre_carpeta)
-    recognizer.crear_directorio_dataset()
-    recognizer.procesar_video()
