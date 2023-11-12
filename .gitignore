@@ -115,10 +115,11 @@ fabric.properties
 .idea/**/azureSettings.xml
 
 # Environment
-venv
+.venv
 
 # Dataset
-creacion-dataset/faces
+creacion-dataset/caras_detectadas
+creacion-dataset/caras_rotadas
 
 #Other
 .idea
