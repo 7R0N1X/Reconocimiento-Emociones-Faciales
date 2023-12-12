@@ -15,7 +15,7 @@ cascade_clasificador = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascad
 tamanio_de_imagen = 48
 
 # Mapeo de etiquetas numéricas a nombres de clase
-diccionario_clases = {0: 'enojado', 1: 'asco', 2: 'miedo', 3: 'feliz', 4: 'neutral'}
+diccionario_clases = {0: 'enojado', 1: 'neutral', 2: 'disgusto', 3: 'miedo', 4: 'feliz'}
 
 
 # Función para preprocesar el frame de la cámara
@@ -39,6 +39,9 @@ captura = cv2.VideoCapture(0)
 
 # Diccionario para almacenar recuentos de emociones detectadas
 recuento_emociones = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+
+# Variable para almacenar la emoción previa
+emocion_previa = None
 
 while True:
     # Leer el frame de la cámara
@@ -68,6 +71,12 @@ while True:
         nombre_clase = diccionario_clases.get(etiqueta_predicha, 'Desconocida')
         porcentaje_maximo = max(porcentajes)
 
+        # Verificar si la emoción detectada es diferente a la emoción previa
+        if nombre_clase != emocion_previa:
+            # Incrementar el recuento de emociones solo si la emoción cambia
+            recuento_emociones[etiqueta_predicha] += 1
+            emocion_previa = nombre_clase  # Actualizar la emoción previa
+
         # Mostrar los porcentajes en la ventana
         resultados_texto = (f"{diccionario_clases[0]}: {porcentajes[0]:.2f}%, "
                             f"{diccionario_clases[1]}: {porcentajes[1]:.2f}%, "
@@ -76,9 +85,6 @@ while True:
                             f"{diccionario_clases[4]}: {porcentajes[4]:.2f}%")
         cv2.putText(frame, resultados_texto, (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2, cv2.LINE_AA)
         cv2.putText(frame, resultados_texto, (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
-
-        # Actualizar el recuento de emociones detectadas
-        recuento_emociones[etiqueta_predicha] += 1
 
         # Dibujar un cuadro alrededor de la cara
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -120,6 +126,7 @@ for row, (emocion, cantidad) in enumerate(recuento_emociones.items(), start=2):
 
     # Calcular el porcentaje de la emoción en relación con el total de emociones
     porcentaje_emocion = (cantidad / total_emociones) * 100 if total_emociones > 0 else 0
+    porcentaje_emocion = round(porcentaje_emocion, 2)
 
     # Agregar los datos de la emoción, cantidad y porcentaje en la hoja de cálculo
     sheet[f'A{row}'] = nombre_emocion
