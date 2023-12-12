@@ -22,7 +22,7 @@ def procesar_cuadro(frame, carpeta_salida):
     frame_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # Detectar rostros en el frame
-    rostros = cascade_clasificador.detectMultiScale(frame_gris, scaleFactor=1.1, minNeighbors=5)
+    rostros = cascade_clasificador.detectMultiScale(frame_gris, scaleFactor=1.1, minNeighbors=5, minSize=(48, 48))
 
     # Iterar sobre los rostros detectados
     for (x, y, w, h) in rostros:
@@ -103,7 +103,7 @@ ruta_video_entrada = 'E:\\video.mp4'
 carpeta_salida = 'rostros-por-emocion'
 
 # Espera entre cada procesamiento de cuadro en milisegundos (reducción de carga CPU)
-espera_entre_cuadros_ms = 100
+espera_entre_cuadros_ms = 13
 
 # Llamar a la función para detectar rostros en el video y guardarlos según la emoción detectada
 detectar_rostros_video(ruta_video_entrada, carpeta_salida, espera_entre_cuadros_ms)
