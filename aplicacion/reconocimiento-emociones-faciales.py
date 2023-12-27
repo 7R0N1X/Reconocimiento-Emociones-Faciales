@@ -5,7 +5,7 @@ import openpyxl
 from openpyxl.chart import BarChart, Reference
 
 # Cargar el modelo
-nombre_modelo = '../modelos-entrenados/DEF.h5'
+nombre_modelo = '../modelos/modelos-entrenados/DEF.h5'
 modelo = load_model(nombre_modelo)
 
 # Inicializar el clasificador Haar Cascade para detección facial
@@ -15,7 +15,7 @@ cascade_clasificador = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascad
 tamanio_de_imagen = 48
 
 # Mapeo de etiquetas numéricas a nombres de clase
-diccionario_clases = {0: 'enojado', 1: 'neutral', 2: 'disgusto', 3: 'miedo', 4: 'feliz'}
+diccionario_clases = {0: 'enojado', 1: 'neutral', 2: 'disgusto', 3: 'miedo', 4: 'feliz', 5: 'triste'}
 
 
 # Función para preprocesar el frame de la cámara
@@ -35,10 +35,10 @@ def preprocesar_frame(frame):
 
 
 # Iniciar la captura de la cámara
-captura = cv2.VideoCapture(0)
+captura = cv2.VideoCapture(2)
 
 # Diccionario para almacenar recuentos de emociones detectadas
-recuento_emociones = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+recuento_emociones = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 
 # Variable para almacenar la emoción previa
 emocion_previa = None
@@ -82,7 +82,8 @@ while True:
                             f"{diccionario_clases[1]}: {porcentajes[1]:.2f}%, "
                             f"{diccionario_clases[2]}: {porcentajes[2]:.2f}%, "
                             f"{diccionario_clases[3]}: {porcentajes[3]:.2f}%, "
-                            f"{diccionario_clases[4]}: {porcentajes[4]:.2f}%")
+                            f"{diccionario_clases[4]}: {porcentajes[4]:.2f}%, "
+                            f"{diccionario_clases[5]}: {porcentajes[5]:.2f}%")
         cv2.putText(frame, resultados_texto, (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2, cv2.LINE_AA)
         cv2.putText(frame, resultados_texto, (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
 
@@ -105,21 +106,21 @@ while True:
 archivo_excel = 'estadisticas_emociones.xlsx'
 
 # Crear un nuevo libro de trabajo de Excel
-workbook = openpyxl.Workbook()
+libro_trabajo = openpyxl.Workbook()
 
 # Obtener la hoja de trabajo activa del libro de Excel
-sheet = workbook.active
+hoja = libro_trabajo.active
 
 # Establecer los encabezados de las columnas en la hoja de cálculo
-sheet['A1'] = 'Emoción'
-sheet['B1'] = 'Cantidad'
-sheet['C1'] = 'Porcentaje'
+hoja['A1'] = 'Emoción'
+hoja['B1'] = 'Cantidad'
+hoja['C1'] = 'Porcentaje'
 
 # Calcular el total de emociones sumando los valores del diccionario 'recuento_emociones'
 total_emociones = sum(recuento_emociones.values())
 
 # Iterar sobre las emociones y cantidades en el diccionario 'recuento_emociones'
-for row, (emocion, cantidad) in enumerate(recuento_emociones.items(), start=2):
+for fila, (emocion, cantidad) in enumerate(recuento_emociones.items(), start=2):
     # Obtener el nombre de la emoción del diccionario 'diccionario_clases' o establecerlo como 'Desconocida' si no
     # está definido
     nombre_emocion = diccionario_clases.get(emocion, 'Desconocida')
@@ -129,28 +130,28 @@ for row, (emocion, cantidad) in enumerate(recuento_emociones.items(), start=2):
     porcentaje_emocion = round(porcentaje_emocion, 2)
 
     # Agregar los datos de la emoción, cantidad y porcentaje en la hoja de cálculo
-    sheet[f'A{row}'] = nombre_emocion
-    sheet[f'B{row}'] = cantidad
-    sheet[f'C{row}'] = porcentaje_emocion
+    hoja[f'A{fila}'] = nombre_emocion
+    hoja[f'B{fila}'] = cantidad
+    hoja[f'C{fila}'] = porcentaje_emocion
 
 # Agregar un gráfico de barras para visualizar las estadísticas de emociones
-values = Reference(sheet, min_col=2, min_row=1, max_col=2, max_row=len(recuento_emociones) + 1)
-categories = Reference(sheet, min_col=1, min_row=2, max_row=len(recuento_emociones) + 1)
+valores = Reference(hoja, min_col=2, min_row=1, max_col=2, max_row=len(recuento_emociones) + 1)
+categorias = Reference(hoja, min_col=1, min_row=2, max_row=len(recuento_emociones) + 1)
 
 # Crear un gráfico de barras
-chart = BarChart()
+grafico_barras = BarChart()
 
 # Agregar los datos y configurar el gráfico
-chart.add_data(values, titles_from_data=True)
-chart.set_categories(categories)
-chart.title = 'Estadísticas de emociones detectadas'
-chart.legend = None
+grafico_barras.add_data(valores, titles_from_data=True)
+grafico_barras.set_categories(categorias)
+grafico_barras.title = 'Estadísticas de emociones detectadas'
+grafico_barras.legend = None
 
 # Agregar el gráfico a la hoja de cálculo en la posición E2
-sheet.add_chart(chart, 'E2')
+hoja.add_chart(grafico_barras, 'E2')
 
 # Guardar los cambios en el libro de trabajo de Excel con el nombre de archivo especificado
-workbook.save(filename=archivo_excel)
+libro_trabajo.save(filename=archivo_excel)
 
 # Liberar la captura y cerrar las ventanas
 captura.release()
