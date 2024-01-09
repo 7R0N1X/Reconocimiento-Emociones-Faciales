@@ -28,7 +28,11 @@ def rotar_imagen(imagen, angulo_rotacion):
     altura, ancho = imagen.shape[:2]
     matriz_rotacion = cv2.getRotationMatrix2D((ancho / 2, altura / 2), angulo_rotacion, 1)
     imagen_rotada = cv2.warpAffine(imagen, matriz_rotacion, (ancho, altura), borderMode=cv2.BORDER_REFLECT)
-    return imagen_rotada
+
+    # Aplicar volteo horizontal a la imagen rotada
+    imagen_volteada = cv2.flip(imagen_rotada, 1)  # 1 indica volteo horizontal, 0 sería vertical
+
+    return imagen_volteada
 
 
 def aplicar_rotacion_carpeta(ruta_carpeta_entrada, ruta_carpeta_salida):
@@ -44,7 +48,7 @@ def aplicar_rotacion_carpeta(ruta_carpeta_entrada, ruta_carpeta_salida):
             ruta_imagen = os.path.join(ruta_carpeta_entrada, archivo)
             imagen_original = cv2.imread(ruta_imagen)
             if imagen_original is not None:
-                guardar_imagen(imagen_original, f"{contador}_original.jpg", ruta_carpeta_salida)
+                # guardar_imagen(imagen_original, f"{contador}_original.jpg", ruta_carpeta_salida)
                 contador += 1
 
                 for angulo in [30, -30]:
@@ -56,5 +60,5 @@ def aplicar_rotacion_carpeta(ruta_carpeta_entrada, ruta_carpeta_salida):
 
 
 ruta_salida = 'caras-rotadas'
-ruta_entrada = 'E:\\img'
+ruta_entrada = ''
 aplicar_rotacion_carpeta(ruta_entrada, ruta_salida)
