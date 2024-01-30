@@ -3,6 +3,9 @@ import numpy as np
 from keras.models import load_model
 import openpyxl
 from openpyxl.chart import BarChart, Reference
+from openpyxl.styles import Alignment
+import time
+from datetime import timedelta
 
 # Constantes
 RUTA_MODELO = '../modelos/modelos-entrenados/DEF.h5'
@@ -29,6 +32,7 @@ class AnalizadorEmociones:
         self.contadores_emociones = {etiqueta: 0 for etiqueta in etiquetas_emociones}
         # Emoción detectada en el frame anterior
         self.emocion_previa = None
+        self.tiempo_inicio = time.time()
 
     def preprocesar_frame(self, frame):
         """
@@ -59,6 +63,13 @@ class AnalizadorEmociones:
             self.contadores_emociones[etiqueta_predicha] += 1
             self.emocion_previa = etiqueta_predicha
 
+    def obtener_tiempo_formateado(self):
+        tiempo_transcurrido = round(time.time() - self.tiempo_inicio)
+        tiempo_delta = timedelta(seconds=tiempo_transcurrido)
+        horas, segundos = divmod(tiempo_delta.seconds, 3600), tiempo_delta.seconds % 3600
+        tiempo_formateado = "{:02}:{:02}:{:02}".format(horas[0], segundos // 60, segundos % 60)
+        return tiempo_formateado
+
     def mostrar_info_en_frame(self, frame, porcentajes, bounding_box, etiqueta_emocion, confianza):
         """
         Muestra información de emociones en el frame, incluyendo porcentajes y etiquetas.
@@ -83,6 +94,10 @@ class AnalizadorEmociones:
         # Mostrar el texto de la etiqueta encima del rectángulo de la cara
         cv2.putText(frame, texto_etiqueta, (bounding_box[0][0], bounding_box[0][1] - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+
+        # Mostrar el tiempo formateado en la ventana
+        cv2.putText(frame, f"Tiempo: {self.obtener_tiempo_formateado()}", (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                    (0, 255, 0), 1, cv2.LINE_AA)
 
     def procesar_frame(self, frame):
         """
@@ -111,7 +126,7 @@ class AnalizadorEmociones:
                                        max(porcentajes))
 
 
-def crear_reporte_excel(contadores_emociones, etiquetas_emociones, archivo_excel):
+def crear_reporte_excel(contadores_emociones, etiquetas_emociones, archivo_excel, tiempo_transcurrido):
     """
     Crea un informe en formato Excel con estadísticas de emociones detectadas.
     :param contadores_emociones: Diccionario con los recuentos de emociones detectadas.
@@ -126,6 +141,7 @@ def crear_reporte_excel(contadores_emociones, etiquetas_emociones, archivo_excel
     hoja['A1'] = 'Emoción'
     hoja['B1'] = 'Cantidad'
     hoja['C1'] = 'Porcentaje'
+    hoja['D1'] = 'Tiempo Transcurrido'
 
     # Calcular el total de emociones sumando los valores del diccionario 'contadores_emociones'
     total_emociones = sum(contadores_emociones.values())
@@ -144,9 +160,13 @@ def crear_reporte_excel(contadores_emociones, etiquetas_emociones, archivo_excel
         hoja[f'B{fila}'] = cantidad
         hoja[f'C{fila}'] = porcentaje_emocion
 
+    # Agregar el tiempo transcurrido en la última fila
+    hoja[f'D{fila + 1}'] = tiempo_transcurrido
+    hoja[f'D{fila + 1}'].alignment = Alignment(horizontal='left')
+
     # Crear referencias para los datos y categorías del gráfico de barras
-    valores = Reference(hoja, min_col=2, min_row=1, max_col=2, max_row=len(contadores_emociones) + 1)
-    categorias = Reference(hoja, min_col=1, min_row=2, max_row=len(contadores_emociones) + 1)
+    valores = Reference(hoja, min_col=2, min_row=1, max_col=2, max_row=fila + 1)
+    categorias = Reference(hoja, min_col=1, min_row=2, max_row=fila + 1)
 
     # Crear un gráfico de barras
     grafico_barras = BarChart()
@@ -175,7 +195,8 @@ if __name__ == "__main__":
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    crear_reporte_excel(analizador_emociones.contadores_emociones, ETIQUETAS_EMOCIONES, ARCHIVO_EXCEL)
+        tiempo_formateado = analizador_emociones.obtener_tiempo_formateado()
+        crear_reporte_excel(analizador_emociones.contadores_emociones, ETIQUETAS_EMOCIONES, ARCHIVO_EXCEL, tiempo_formateado)
 
     captura.release()
     cv2.destroyAllWindows()
