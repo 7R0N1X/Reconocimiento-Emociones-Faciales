@@ -8,7 +8,7 @@ import time
 from datetime import timedelta
 
 # Constantes
-RUTA_MODELO = '../modelos/modelos-entrenados/DEF.h5'
+RUTA_MODELO = '../modelos/modelos-entrenados/DEF_RELU.h5'
 RUTA_CASCADE = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
 TAMANO_IMAGEN = 48
 ETIQUETAS_EMOCIONES = {0: 'enojado', 1: 'neutral', 2: 'disgusto', 3: 'miedo', 4: 'feliz', 5: 'triste'}
