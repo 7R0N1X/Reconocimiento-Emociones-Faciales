@@ -3,7 +3,7 @@ import os
 from tensorflow.keras.models import load_model
 import numpy as np
 
-MODELO_RUTA = '../modelos/modelos-entrenados/DEF.h5'
+MODELO_RUTA = '../modelos/modelos-entrenados/DEF_RELU.h5'
 TAMANIO_IMAGEN = 48
 DIC_CLASES = {0: 'enojado', 1: 'neutral', 2: 'disgusto', 3: 'miedo', 4: 'feliz', 5: 'triste'}
 
@@ -111,7 +111,7 @@ def detectar_rostros_video(input_video, carpeta_salida, espera_entre_cuadros_ms)
     cv2.destroyAllWindows()
 
 
-ruta_video_entrada = 'D:\\d.mp4'
+ruta_video_entrada = ''
 carpeta_salida = 'rostros-por-emocion'
-espera_entre_cuadros_ms = 20
+espera_entre_cuadros_ms = 24
 detectar_rostros_video(ruta_video_entrada, carpeta_salida, espera_entre_cuadros_ms)

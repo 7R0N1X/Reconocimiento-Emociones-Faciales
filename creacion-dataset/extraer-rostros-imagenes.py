@@ -3,7 +3,7 @@ import os
 from tensorflow.keras.models import load_model
 import numpy as np
 
-MODELO_RUTA = '../modelos/modelos-entrenados/DEF.h5'
+MODELO_RUTA = '../modelos/modelos-entrenados/DEF_RELU.h5'
 TAMANIO_IMAGEN = 48
 DIC_CLASES = {0: 'enojado', 1: 'neutral', 2: 'disgusto', 3: 'miedo', 4: 'feliz', 5: 'triste'}
 
@@ -79,7 +79,7 @@ def procesar_imagenes_en_carpeta(carpeta_entrada, carpeta_salida, modelo, cascad
         procesar_imagen(ruta_imagen, carpeta_salida, modelo, cascade)
 
 
-ruta_carpeta_imagenes = 'E:\\img'
+ruta_carpeta_imagenes = ''
 carpeta_salida = 'rostros-por-emocion'
 
 cascade_clasificador = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
